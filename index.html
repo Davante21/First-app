@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Price Peek — guess whether everyday products cost more or less." />
+    <title>Price Peek — Higher or Lower?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Price Peek home">
+        <span class="brand-mark" aria-hidden="true">P</span>
+        <span>Price Peek</span>
+      </a>
+      <div class="header-stats">
+        <div class="stat"><span class="stat-icon">🔥</span><span><b id="headerStreak">0</b><small>streak</small></span></div>
+        <div class="stat best"><span class="stat-icon">🏆</span><span><b id="bestScore">0</b><small>best</small></span></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">THE EVERYDAY PRICE GAME</p>
+        <h1 id="page-title">Higher or lower?</h1>
+        <p class="subtitle">Think you know what things cost? Put your instincts to the test.</p>
+      </section>
+
+      <section class="game-card" aria-live="polite">
+        <div class="product-image-wrap">
+          <img id="productImage" src="" alt="" />
+          <span class="category-pill" id="category">Grocery</span>
+        </div>
+
+        <div class="game-content">
+          <div class="round-line"><span id="roundLabel">ROUND 1</span><span id="progressLabel">0 / 10</span></div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+          <p class="prompt">What does this cost?</p>
+          <h2 id="productName">Organic Bananas</h2>
+          <p id="productDetail" class="product-detail">One bunch · approx. 2.5 lb</p>
+
+          <div class="price-box">
+            <p>IS THE ACTUAL PRICE</p>
+            <div class="guess-price"><sup>$</sup><span id="shownPrice">0.89</span></div>
+            <p>HIGHER OR LOWER?</p>
+          </div>
+
+          <div class="answer-buttons">
+            <button class="answer lower" data-answer="lower"><span class="arrow">↓</span><span><b>LOWER</b><small>Costs less than $<span class="buttonPrice">0.89</span></small></span></button>
+            <button class="answer higher" data-answer="higher"><span><b>HIGHER</b><small>Costs more than $<span class="buttonPrice">0.89</span></small></span><span class="arrow">↑</span></button>
+          </div>
+          <p class="keyboard-hint"><kbd>←</kbd> lower &nbsp;&nbsp; <kbd>→</kbd> higher</p>
+        </div>
+      </section>
+    </main>
+
+    <div id="resultOverlay" class="result-overlay" hidden>
+      <div class="result-card">
+        <div id="resultIcon" class="result-icon">✓</div>
+        <p id="resultEyebrow" class="eyebrow">NICE CALL!</p>
+        <h2 id="resultTitle">That’s right</h2>
+        <p id="resultCopy"></p>
+        <button id="nextButton" class="primary-button">Next item <span>→</span></button>
+      </div>
+    </div>
+
+    <footer><p>Prices are based on typical U.S. retail averages and may vary.</p><p>Made for curious shoppers 🛒</p></footer>
+    <script src="app.js"></script>
+  </body>
+</html>
