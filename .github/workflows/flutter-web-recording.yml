@@ -1,0 +1,82 @@
+name: Record Genuine Flutter Web App
+
+on:
+  push:
+    branches: [flutter-gems-calculator-demo]
+    paths:
+      - .github/workflows/flutter-web-recording.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-record:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.3.10"
+          channel: stable
+          cache: true
+      - name: Get original app and enable Flutter Web target
+        run: |
+          git clone --depth 1 https://github.com/belelaritra/Neumorphic_Calculator.git upstream_web
+          cd upstream_web
+          flutter create --platforms=web .
+          flutter pub get
+          flutter build web --release --web-renderer html
+      - name: Prepare screen recording environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb xdotool ffmpeg
+          mkdir -p recordings
+          nohup Xvfb :97 -screen 0 900x900x24 > /tmp/xvfb.log 2>&1 &
+          nohup python3 -m http.server 8000 --directory upstream_web/build/web > /tmp/flutter_web_server.log 2>&1 &
+          sleep 3
+      - name: Record original Flutter web app for 8 seconds
+        run: |
+          set -eo pipefail
+          export DISPLAY=:97
+          google-chrome --no-sandbox --disable-dev-shm-usage --disable-gpu --app=http://localhost:8000/ --window-size=420,780 --window-position=0,0 --user-data-dir=/tmp/flutterchrome1 > /tmp/chrome1.log 2>&1 &
+          sleep 10
+          ffmpeg -y -nostdin -f x11grab -framerate 15 -video_size 900x900 -i :97.0 -t 8 -vf "crop=420:780:0:0" -c:v libx264 -pix_fmt yuv420p recordings/01_original_flutter_web.mp4
+          DISPLAY=:97 import -window root recordings/01_original_desktop.png || true
+          pkill -x chrome || true
+      - name: Apply student customization and build Flutter web again
+        run: |
+          cp flutter_gems_calculator/overrides/lib/src/ui/calculation_display.dart upstream_web/lib/src/ui/calculation_display.dart
+          cd upstream_web
+          flutter build web --release --web-renderer html
+      - name: Record customized Flutter web app for 8 seconds
+        run: |
+          set -eo pipefail
+          export DISPLAY=:97
+          google-chrome --no-sandbox --disable-dev-shm-usage --disable-gpu --app=http://localhost:8000/ --window-size=420,780 --window-position=0,0 --user-data-dir=/tmp/flutterchrome2 > /tmp/chrome2.log 2>&1 &
+          sleep 10
+          ffmpeg -y -nostdin -f x11grab -framerate 15 -video_size 900x900 -i :97.0 -t 8 -vf "crop=420:780:0:0" -c:v libx264 -pix_fmt yuv420p recordings/02_modified_flutter_web.mp4
+          DISPLAY=:97 import -window root recordings/02_modified_desktop.png || true
+          pkill -x chrome || true
+      - name: Compile bug fix in the Flutter web application
+        run: |
+          cp flutter_gems_calculator/overrides/lib/src/utils/button_press.dart upstream_web/lib/src/utils/button_press.dart
+          cd upstream_web
+          flutter build web --release --web-renderer html
+      - name: Record compiled bug-fix build for 8 seconds
+        run: |
+          set -eo pipefail
+          export DISPLAY=:97
+          google-chrome --no-sandbox --disable-dev-shm-usage --disable-gpu --app=http://localhost:8000/ --window-size=420,780 --window-position=0,0 --user-data-dir=/tmp/flutterchrome3 > /tmp/chrome3.log 2>&1 &
+          sleep 10
+          ffmpeg -y -nostdin -f x11grab -framerate 15 -video_size 900x900 -i :97.0 -t 8 -vf "crop=420:780:0:0" -c:v libx264 -pix_fmt yuv420p recordings/04_bugfix_build_flutter_web.mp4
+          DISPLAY=:97 import -window root recordings/04_bugfix_desktop.png || true
+          pkill -x chrome || true
+      - name: Upload video recordings and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genuine-flutter-web-recordings
+          path: recordings/
+          if-no-files-found: warn
