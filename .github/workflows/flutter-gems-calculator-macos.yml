@@ -1,12 +1,6 @@
 name: Flutter Gems Calculator Demo - macOS Emulator
 
 on:
-  push:
-    branches:
-      - flutter-gems-calculator-demo
-    paths:
-      - flutter_gems_calculator/**
-      - .github/workflows/flutter-gems-calculator-macos.yml
   workflow_dispatch:
 
 permissions:
