@@ -35,6 +35,19 @@ async function main() {
   ));
   console.log('Mode:', mode, 'Flutter root detected:', isFlutter);
 
+  if (mode === 'original' || mode === 'customized') {
+    const tap = async (x, y) => {
+      await page.mouse.click(x, y);
+      await page.waitForTimeout(650);
+    };
+    // Demonstrate a working calculation: C, 5, +, 3, =.
+    await tap(55, 460);
+    await tap(148, 604);
+    await tap(342, 676);
+    await tap(245, 676);
+    await tap(342, 752);
+  }
+
   if (mode === 'bug_before' || mode === 'bug_after') {
     const tap = async (x, y) => {
       await page.mouse.click(x, y);
@@ -58,12 +71,9 @@ async function main() {
   await context.close();
   await browser.close();
   const webmPath = await video.path();
-  const output = path.join(out, mode + '.mp4');
-  execFileSync('ffmpeg', [
-    '-y','-loglevel','error','-i',webmPath,
-    '-c:v','libx264','-pix_fmt','yuv420p',
-    '-movflags','+faststart',output
-  ]);
+  // Keep Playwright's native WebM recording. Convert to MP4 when downloaded.
+  const output = path.join(out, mode + '.webm');
+  fs.renameSync(webmPath, output);
   fs.writeFileSync(path.join(out, mode + '_console.txt'),
     'Flutter root detected: ' + isFlutter + '\n' + errors.join('\n') + '\n');
   console.log('Saved:', output, fs.statSync(output).size, 'bytes');
