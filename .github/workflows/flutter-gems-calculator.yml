@@ -32,6 +32,9 @@ jobs:
           git clone --depth 1 https://github.com/belelaritra/Neumorphic_Calculator.git upstream_app
           cd upstream_app
           flutter pub get
+      - name: Compile original Flutter Android APK before launching emulator
+        working-directory: upstream_app
+        run: flutter build apk --debug
       - name: Capture real original, customized, and bug-test footage
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -41,9 +44,12 @@ jobs:
           cores: 2
           ram-size: 2048M
           heap-size: 512M
+          emulator-boot-timeout: 1200
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
           disable-animations: true
           script: bash flutter_gems_calculator/capture.sh
+        env:
+          ANDROID_I_WANT_MY_TCG: "yes"
       - name: Upload evidence videos and screenshots
         if: always()
         uses: actions/upload-artifact@v4
