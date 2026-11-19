@@ -1,0 +1,53 @@
+name: Flutter Gems Calculator Demo
+
+on:
+  push:
+    branches:
+      - flutter-gems-calculator-demo
+    paths:
+      - flutter_gems_calculator/**
+      - .github/workflows/flutter-gems-calculator.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-real-emulator:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.3.10"
+          channel: stable
+          cache: true
+      - name: Download original third-party Flutter app
+        run: |
+          git clone --depth 1 https://github.com/belelaritra/Neumorphic_Calculator.git upstream_app
+          cd upstream_app
+          flutter pub get
+      - name: Capture real original, customized, and bug-test footage
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          heap-size: 512M
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
+          disable-animations: true
+          script: bash flutter_gems_calculator/capture.sh
+      - name: Upload evidence videos and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-gems-calculator-evidence
+          path: recordings/
+          if-no-files-found: warn
