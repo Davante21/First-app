@@ -1,0 +1,49 @@
+name: Import and Customize Upstream Flutter App
+
+on:
+  push:
+    branches:
+      - flutter-gems-calculator-demo
+    paths:
+      - .github/workflows/import-upstream-flutter.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: flutter-gems-calculator-demo
+          persist-credentials: true
+      - name: Clone and attribute original developer's app
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/belelaritra/Neumorphic_Calculator.git /tmp/Neumorphic_Calculator
+          mkdir -p flutter_gems_calculator/app
+          rsync -a --exclude=.git /tmp/Neumorphic_Calculator/ flutter_gems_calculator/app/
+          cp flutter_gems_calculator/overrides/lib/src/ui/calculation_display.dart flutter_gems_calculator/app/lib/src/ui/calculation_display.dart
+          cp flutter_gems_calculator/overrides/lib/src/utils/button_press.dart flutter_gems_calculator/app/lib/src/utils/button_press.dart
+          {
+            echo "# Third-party upstream attribution"
+            echo ""
+            echo "Original source: https://github.com/belelaritra/Neumorphic_Calculator"
+            echo "Upstream commit: $(git -C /tmp/Neumorphic_Calculator rev-parse HEAD)"
+            echo "Author: the Neumorphic Calculator contributors"
+            echo "License: see LICENSE in this folder; original copyright retained."
+            echo "Changes: student name label and proposed fix for issue #20."
+          } > flutter_gems_calculator/app/STUDENT_CHANGES.md
+      - name: Push customized source into student branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add flutter_gems_calculator/app
+          if ! git diff --cached --quiet; then
+            git commit -m "Import attributed third-party Flutter source with student modifications"
+            git push origin HEAD:flutter-gems-calculator-demo
+          fi
