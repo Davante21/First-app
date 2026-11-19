@@ -9,7 +9,7 @@ cd "${UPSTREAM}"
 echo "Building and launching original Flutter app"
 flutter pub get
 adb shell wm size 360x780
-adb shell wm density 320
+adb shell wm density 160
 
 launch_app () {
   flutter build apk --debug
@@ -50,6 +50,20 @@ demo_calculation () {
   sleep 1
 }
 
+# Record the entire interaction, rather than just the final screen.
+record_live_calculation () {
+  local name="$1"
+  adb shell rm -f "/sdcard/${name}.mp4"
+  adb shell screenrecord --bit-rate 1250000 --time-limit 12 "/sdcard/${name}.mp4" &
+  local pid=$!
+  sleep 1
+  demo_calculation
+  sleep 3
+  wait "$pid" || true
+  adb pull "/sdcard/${name}.mp4" "${OUT}/${name}.mp4"
+  adb exec-out screencap -p > "${OUT}/${name}.png"
+}
+
 launch_app
 record_clip 01_original_running
 echo "Original capture complete."
@@ -62,15 +76,13 @@ adb shell am force-stop com.neumorphic.calculator || true
 adb shell am start -n com.neumorphic.calculator/.MainActivity
 sleep 4
 adb shell input tap 45 380 || true # C, if coordinate correct
-demo_calculation
-record_clip 03_bug_reproduction_attempt
+record_live_calculation 03_bug_reproduction_attempt
 echo "Original reported behavior capture complete, manual visual verification needed."
 
 cp "${OVERRIDES}/lib/src/utils/button_press.dart" lib/src/utils/button_press.dart
 launch_app
 adb shell input tap 45 380 || true # C, if coordinate correct
-demo_calculation
-record_clip 04_bug_fix_attempt
+record_live_calculation 04_bug_fix_attempt
 echo "Bug-fix code build and capture complete; manual visual verification needed."
 
 echo "Recordings:"
